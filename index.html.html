@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字1秒チャレンジ</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #182238;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+h1 {
+  margin-top: 35px;
+  font-size: 30px;
+}
+
+#score {
+  font-size: 24px;
+  margin: 15px;
+}
+
+#timer {
+  font-size: 22px;
+  color: #ffdf65;
+}
+
+#kanji {
+  font-size: 130px;
+  font-weight: bold;
+  margin: 35px 0;
+  min-height: 160px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 550px;
+  margin: auto;
+}
+
+button {
+  border: none;
+  border-radius: 15px;
+  padding: 18px 25px;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 85px;
+}
+
+#start {
+  background: #ffbd42;
+  color: #222;
+  font-size: 22px;
+  margin-top: 35px;
+}
+
+#message {
+  font-size: 22px;
+  margin-top: 25px;
+  min-height: 30px;
+}
+
+#bar {
+  width: 80%;
+  height: 12px;
+  margin: 20px auto;
+  background: #39445b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#progress {
+  height: 100%;
+  width: 100%;
+  background: #ffdf65;
+}
+</style>
+</head>
+
+<body>
+
+<h1>漢字1秒チャレンジ</h1>
+
+<div id="score">スコア：0　連続正解：0</div>
+<div id="timer">残り時間：1.00秒</div>
+
+<div id="bar">
+  <div id="progress"></div>
+</div>
+
+<div id="kanji">？</div>
+
+<div class="buttons">
+  <button onclick="answer('林')">林</button>
+  <button onclick="answer('材')">材</button>
+  <button onclick="answer('村')">村</button>
+  <button onclick="answer('株')">株</button>
+  <button onclick="answer('机')">机</button>
+</div>
+
+<div id="message">1秒以内に正しい漢字を選ぼう！</div>
+
+<button id="start" onclick="startGame()">ゲームスタート</button>
+
+<script>
+let score = 0;
+let combo = 0;
+let correct = "";
+let playing = false;
+let startTime = 0;
+let timerId = null;
+
+const limit = 1000;
+const kanjiList = ["林", "材", "村", "株", "机"];
+
+function startGame() {
+  score = 0;
+  combo = 0;
+  playing = true;
+
+  document.getElementById("score").textContent =
+    "スコア：0　連続正解：0";
+
+  document.getElementById("message").textContent = "スタート！";
+  document.getElementById("start").style.display = "none";
+
+  nextQuestion();
+}
+
+function nextQuestion() {
+  if (!playing) return;
+
+  correct = kanjiList[
+    Math.floor(Math.random() * kanjiList.length)
+  ];
+
+  document.getElementById("kanji").textContent = correct;
+  startTime = performance.now();
+
+  clearInterval(timerId);
+
+  timerId = setInterval(() => {
+    let elapsed = performance.now() - startTime;
+    let remaining = Math.max(0, limit - elapsed);
+
+    document.getElementById("timer").textContent =
+      "残り時間：" + (remaining / 1000).toFixed(2) + "秒";
+
+    document.getElementById("progress").style.width =
+      (remaining / limit * 100) + "%";
+
+    if (remaining <= 0) {
+      gameOver("時間切れ！");
+    }
+  }, 10);
+}
+
+function answer(choice) {
+  if (!playing) return;
+
+  let elapsed = performance.now() - startTime;
+
+  if (elapsed >= limit) {
+    gameOver("時間切れ！");
+    return;
+  }
+
+  if (choice === correct) {
+    score++;
+    combo++;
+
+    document.getElementById("score").textContent =
+      "スコア：" + score + "　連続正解：" + combo;
+
+    document.getElementById("message").textContent = "正解！";
+
+    nextQuestion();
+  } else {
+    gameOver("不正解！");
+  }
+}
+
+function gameOver(reason) {
+  if (!playing) return;
+
+  playing = false;
+  clearInterval(timerId);
+
+  document.getElementById("message").textContent =
+    reason + " 最終スコア：" + score;
+
+  document.getElementById("kanji").textContent = "終了";
+  document.getElementById("timer").textContent = "GAME OVER";
+  document.getElementById("progress").style.width = "0%";
+
+  document.getElementById("start").textContent = "もう一度挑戦";
+  document.getElementById("start").style.display = "inline-block";
+}
+</script>
+
+</body>
+</html>
